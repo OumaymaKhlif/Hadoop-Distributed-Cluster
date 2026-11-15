@@ -51,40 +51,6 @@ The cluster consists of three virtual machines:
 | Java 8 | Hadoop runtime environment |
 | Linux | Operating system |
 
-## Project Structure
-
-```text
-hadoop-cluster/
-│
-├── Vagrantfile
-│
-├── inventory.ini
-│
-├── playbook.yml
-│
-├── roles/
-│   ├── java/
-│   │   └── tasks/
-│   │
-│   ├── ssh/
-│   │   └── tasks/
-│   │
-│   ├── hadoop/
-│   │   ├── tasks/
-│   │   ├── templates/
-│   │   └── files/
-│   │
-│   ├── hdfs/
-│   │   └── tasks/
-│   │
-│   └── yarn/
-│       └── tasks/
-│
-└── README.md
-```
-
-*Note: Adapt the structure to match your actual repository.*
-
 ## Deployment Workflow
 
 The cluster deployment is fully automated using Vagrant and Ansible.
