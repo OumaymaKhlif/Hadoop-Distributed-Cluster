@@ -1,0 +1,29 @@
+# configurer une connexion SSH sans mot de passe entre le NameNode et les DataNodes grâce à une clé publique.
+# Elle permet au NameNode de démarrer les services Hadoop sur les DataNodes à distance, sans demander de mot de passe à chaque connexion.
+
+---
+# Générer une clé SSH dédiée sur le NameNode
+- name: Générer la clé SSH Hadoop si elle n'existe pas
+  ansible.builtin.command:
+    cmd: ssh-keygen -t rsa -b 4096 -N "" -f /home/oumayma/.ssh/id_rsa
+    creates: /home/oumayma/.ssh/id_rsa
+  become: true
+  become_user: oumayma
+  when: inventory_hostname == 'namenode'
+
+# Récupérer la clé publique du NameNode et l'autoriser sur les machines
+- name: Lire la clé publique Hadoop
+  ansible.builtin.slurp:
+    src: /home/oumayma/.ssh/id_rsa.pub
+  register: hadoop_public_key
+  become: true
+  become_user: oumayma
+  delegate_to: namenode
+  run_once: true
+
+- name: Autoriser la clé publique Hadoop
+  ansible.posix.authorized_key:
+    user: oumayma
+    key: "{{ hostvars['namenode']['hadoop_public_key']['content'] | b64decode }}"
+    state: present
+  become: true

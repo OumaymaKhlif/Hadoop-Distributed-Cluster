@@ -1,0 +1,50 @@
+
+<!-- Ce fichier configure MapReduce pour fonctionner avec YARN, définit le classpath des tâches et configure le JobHistory Server pour consulter historique des traitements.-->
+
+
+<configuration>
+
+  <!-- Exécuter MapReduce avec YARN -->
+  <property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+  </property>
+
+  <!-- Classpath utilisé par MRAppMaster et les tâches MapReduce -->
+  <!-- Ou hadoop doit chercher les bibliothèques necessaires à l'execution des apps MapReduce-->
+  <property>
+    <name>mapreduce.application.classpath</name>
+    <value>/home/oumayma/hadoop/share/hadoop/mapreduce/*,/home/oumayma/hadoop/share/hadoop/mapreduce/lib/*</value>
+  </property>
+
+  <!-- Adresse du serveur d'historique des jobs -->
+  <property>
+    <name>mapreduce.jobhistory.address</name>
+    <value>namenode:10020</value>
+  </property>
+
+  <!-- Interface Web du JobHistory Server -->
+  <property>
+    <name>mapreduce.jobhistory.webapp.address</name>
+    <value>namenode:19888</value>
+  </property>
+
+  <!-- Variable d'environnement pour l'ApplicationMaster MapReduce -->
+  <property>
+    <name>yarn.app.mapreduce.am.env</name>
+    <value>HADOOP_MAPRED_HOME=/home/oumayma/hadoop</value>
+  </property>
+
+  <!-- Variables d'environnement des tâches Map -->
+  <property>
+    <name>mapreduce.map.env</name>
+    <value>HADOOP_MAPRED_HOME=/home/oumayma/hadoop</value>
+  </property>
+
+  <!-- Variables d'environnement des tâches Reduce -->
+  <property>
+    <name>mapreduce.reduce.env</name>
+    <value>HADOOP_MAPRED_HOME=/home/oumayma/hadoop</value>
+  </property>
+
+</configuration>

@@ -1,0 +1,36 @@
+
+---
+- name: Vérifier les processus Java
+  ansible.builtin.command:
+    cmd: /usr/lib/jvm/java-8-openjdk-amd64/bin/jps -l
+  register: java_processes
+  changed_when: false
+  become_user: oumayma
+  environment:
+    HOME: /home/oumayma
+    JAVA_HOME: /usr/lib/jvm/java-8-openjdk-amd64
+    PATH: /usr/lib/jvm/java-8-openjdk-amd64/bin:/usr/bin:/bin
+
+- name: Démarrer le ResourceManager
+  ansible.builtin.command:
+    cmd: /home/oumayma/hadoop/bin/yarn --daemon start resourcemanager
+  become_user: oumayma
+  environment:
+    HOME: /home/oumayma
+    JAVA_HOME: /usr/lib/jvm/java-8-openjdk-amd64
+    HADOOP_HOME: /home/oumayma/hadoop
+  when:
+    - inventory_hostname == groups['namenodes'][0]
+    - "'org.apache.hadoop.yarn.server.resourcemanager.ResourceManager' not in java_processes.stdout"
+
+- name: Démarrer le NodeManager
+  ansible.builtin.command:
+    cmd: /home/oumayma/hadoop/bin/yarn --daemon start nodemanager
+  become_user: oumayma
+  environment:
+    HOME: /home/oumayma
+    JAVA_HOME: /usr/lib/jvm/java-8-openjdk-amd64
+    HADOOP_HOME: /home/oumayma/hadoop
+  when:
+    - inventory_hostname in groups['datanodes']
+    - "'org.apache.hadoop.yarn.server.nodemanager.NodeManager' not in java_processes.stdout"

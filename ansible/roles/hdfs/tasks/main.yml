@@ -1,0 +1,23 @@
+---
+- name: Formater HDFS uniquement lors de la première installation
+  ansible.builtin.command:
+    cmd: /home/oumayma/hadoop/bin/hdfs namenode -format -nonInteractive
+    creates: /home/oumayma/hadoop/hdfs/namenode/current/VERSION
+  become_user: oumayma
+  environment:
+    JAVA_HOME: /usr/lib/jvm/java-8-openjdk-amd64
+    HADOOP_HOME: /home/oumayma/hadoop
+  when: inventory_hostname == groups['namenodes'][0]
+
+# le formatage initialise les métadonnées du système de fichiers HDFS.
+# Status 0 : processus a été exécuté avec succès
+
+- name: Démarrer HDFS depuis le NameNode
+  ansible.builtin.command:
+    cmd: /home/oumayma/hadoop/sbin/start-dfs.sh
+  become_user: oumayma
+  environment:
+    HOME: /home/oumayma
+    JAVA_HOME: /usr/lib/jvm/java-8-openjdk-amd64
+    HADOOP_HOME: /home/oumayma/hadoop
+  when: inventory_hostname == groups['namenodes'][0]

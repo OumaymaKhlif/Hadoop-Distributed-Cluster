@@ -1,0 +1,22 @@
+
+<!-- Configuration ses paramètres spécifiques au fonctionnement et au stockage de HDFS.-->
+<configuration>
+  <!-- Le nombre de réplicas de chaque bloc HDFS. -->
+  <property>
+    <name>dfs.replication</name>
+    <!-- 2 copies de chaque bloc -->
+    <value>2</value>
+  </property>
+
+  <!-- L'endroit où le NameNode stocke ses métadonnées -->
+  <property>
+    <name>dfs.namenode.name.dir</name>
+    <value>/home/oumayma/hadoop/hdfs/namenode</value>
+  </property>
+
+  <!-- L'endroit où les DataNodes stockent les blocs de données -->
+  <property>
+    <name>dfs.datanode.data.dir</name>
+    <value>/home/oumayma/hadoop/hdfs/datanode</value>
+  </property>
+</configuration>

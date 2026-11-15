@@ -1,0 +1,61 @@
+
+<!--configuration de YARN et gestion des ressources du cluster et d’exécution des applications Hadoop. -->
+
+
+<configuration>
+
+  <!-- Nom d'hôte du ResourceManager, qui coordonne les ressources YARN -->
+  <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>namenode</value>
+  </property>
+
+  <!-- Activer le service shuffle nécessaire à MapReduce -->
+  <!-- mapreduce_shuffle permet l'échange des résultats entre Map et Reduce -->
+  <!-- Le ShuffleHandler est un service du NodeManager de YARN qui permet aux tâches Reduce de récupérer les résultats produits par les tâches Map.-->
+  <property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+  </property>
+
+  <!-- Classe qui implémente le service shuffle -->
+  <property>
+    <name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
+    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+  </property>
+
+  <!-- Répertoire local des fichiers temporaires des NodeManagers -->
+  <property>
+    <name>yarn.nodemanager.local-dirs</name>
+    <value>/home/oumayma/tmp/yarn/local</value>
+  </property>
+
+  <!-- Répertoire des journaux des NodeManagers -->
+  <property>
+    <name>yarn.nodemanager.log-dirs</name>
+    <value>/home/oumayma/tmp/yarn/log</value>
+  </property>
+
+  <!-- Classpath utilisé par les applications YARN -->
+  <property>
+    <name>yarn.application.classpath</name>
+    <value>
+      /home/oumayma/hadoop/etc/hadoop,
+      /home/oumayma/hadoop/share/hadoop/common/*,
+      /home/oumayma/hadoop/share/hadoop/common/lib/*,
+      /home/oumayma/hadoop/share/hadoop/hdfs/*,
+      /home/oumayma/hadoop/share/hadoop/hdfs/lib/*,
+      /home/oumayma/hadoop/share/hadoop/mapreduce/*,
+      /home/oumayma/hadoop/share/hadoop/mapreduce/lib/*,
+      /home/oumayma/hadoop/share/hadoop/yarn/*,
+      /home/oumayma/hadoop/share/hadoop/yarn/lib/*
+    </value>
+  </property>
+
+  <!-- URL du serveur d'historique pour consulter les journaux des jobs -->
+  <property>
+    <name>yarn.log.server.url</name>
+    <value>http://namenode:19888/jobhistory/logs</value>
+  </property>
+
+</configuration>

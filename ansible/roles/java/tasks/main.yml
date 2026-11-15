@@ -1,0 +1,22 @@
+
+---
+- name: Vérifier les paquets installés
+  ansible.builtin.package_facts:
+    manager: apt
+
+- name: Installer Java 8
+  ansible.builtin.apt:
+    name: openjdk-8-jdk
+    state: present
+    update_cache: true
+  become: true
+  when: "'openjdk-8-jdk' not in ansible_facts.packages"
+
+- name: Vérifier la version de Java
+  ansible.builtin.command: java -version
+  register: java_version
+  changed_when: false
+
+- name: Afficher la version de Java
+  ansible.builtin.debug:
+    var: java_version.stderr

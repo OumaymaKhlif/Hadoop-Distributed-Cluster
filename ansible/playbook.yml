@@ -1,0 +1,53 @@
+
+---
+# ==========================================================
+# PLAYBOOK PRINCIPAL : INSTALLATION DU CLUSTER HADOOP
+# ==========================================================
+# Ce playbook automatise les étapes réalisées manuellement
+# sur les trois machines virtuelles :
+#   - NameNode  : 192.168.56.120
+#   - DataNode1 : 192.168.56.121
+#   - DataNode2 : 192.168.56.122
+#
+# Toutes les tâches sont exécutées sur le groupe "hadoop"
+# défini dans inventory.ini.
+# "become: true" permet d'utiliser les privilèges administrateur
+# pour installer les paquets et modifier les fichiers système.
+
+- name: Déployer et configurer le cluster Hadoop
+  hosts: hadoop
+  become: true
+  gather_facts: false
+
+  pre_tasks:
+    - name: Attendre que SSH soit disponible sur chaque machine
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+        sleep: 5
+        connect_timeout: 5
+
+    - name: Collecter les informations des machines
+      ansible.builtin.setup:
+
+  roles:
+    # ÉTAPE 1 : Installer Java 8, nécessaire au fonctionnement
+    # de Hadoop.
+    - java
+
+    # ÉTAPE 2 : Configurer SSH afin que le NameNode puisse
+    # accéder aux autres machines et leur transférer Hadoop
+    # sans saisir de mot de passe.
+    - ssh
+
+    # ÉTAPE 3 : Télécharger et extraire Hadoop sur le NameNode,
+    # le transférer aux DataNodes, puis configurer le cluster.
+    - hadoop
+
+    # ÉTAPE 4 : Initialiser le système de fichiers distribué
+    # HDFS lors de la première installation, puis démarrer
+    # le NameNode et les DataNodes.
+    - hdfs
+
+    # ÉTAPE 5 : Démarrer YARN pour gérer les ressources
+    # et exécuter les applications MapReduce.
+    - yarn

@@ -1,0 +1,24 @@
+
+<!-- Racine de la configuration Hadoop -->
+<configuration>
+
+  <!-- Début d'une propriété de configuration -->
+  <property>
+
+    <!-- Indique le système de fichiers par défaut utilisé par Hadoop -->
+    <name>fs.default.name</name>
+
+    <!-- Adresse du NameNode : nom de la machine et port de communication -->
+    <!-- hdfs://NameNode:9000 est l adresse du service HDFS -->
+    <!-- Interface web : http://192.168.56.120:9870 -->
+    <!-- 9000 = communication Hadoop/HDFS -->
+    <value>hdfs://NameNode:9000</value>
+
+    <!-- Description lisible de cette propriété -->
+    <description>The default file system URI</description>
+
+  <!-- Fin de la propriété -->
+  </property>
+
+<!-- Fin de la configuration Hadoop -->
+</configuration>
