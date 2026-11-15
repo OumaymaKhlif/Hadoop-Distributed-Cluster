@@ -12,11 +12,9 @@
 
 ## Overview
 
-This project focuses on deploying and configuring a **three-node Apache Hadoop cluster** using Vagrant, VirtualBox, and Ansible.
+This project deploys and configures a **three-node Apache Hadoop cluster** using Vagrant, VirtualBox, and Ansible.
 
-The infrastructure integrates HDFS for distributed storage, YARN for resource management, and MapReduce for distributed data processing.
-
-The entire deployment process is automated through a centralized Ansible playbook organized into reusable roles, following Infrastructure as Code (IaC) and Configuration Management principles.
+The cluster uses HDFS for distributed storage, YARN for resource management, and MapReduce configured to run on YARN. Vagrant provisions the virtual machines; a centralized Ansible playbook applies the configuration through reusable roles.
 
 ## Architecture
 
@@ -24,193 +22,153 @@ The cluster consists of three virtual machines:
 
 | Node | IP Address | Responsibilities |
 |---|---|---|
-| NameNode | 192.168.56.120 | HDFS NameNode, YARN ResourceManager |
-| DataNode 1 | 192.168.56.121 | HDFS DataNode, YARN NodeManager |
-| DataNode 2 | 192.168.56.122 | HDFS DataNode, YARN NodeManager |
+| `namenode` | `192.168.56.120` | HDFS NameNode, YARN ResourceManager |
+| `datanode1` | `192.168.56.121` | HDFS DataNode, YARN NodeManager |
+| `datanode2` | `192.168.56.122` | HDFS DataNode, YARN NodeManager |
 
-### Infrastructure Specifications
+### Infrastructure specifications
 
-- 3 Virtual Machines
-- 2 GB RAM per machine
-- 2 CPU cores per machine
+- 3 virtual machines
+- 2 GB RAM and 2 CPU cores per machine
 - Static private IP addresses
-- VirtualBox virtualization
-- Lubuntu-based environment
+- VirtualBox provider
+- `lubuntu-base` Vagrant box
 
-## Technologies Used
+## Technologies
 
 | Technology | Purpose |
 |---|---|
 | Apache Hadoop 3.3.6 | Distributed computing framework |
 | HDFS | Distributed file storage |
 | YARN | Cluster resource management |
-| MapReduce | Distributed data processing |
+| MapReduce | Distributed data processing, configured to use YARN |
 | Vagrant | Virtual machine provisioning |
 | VirtualBox | Virtualization provider |
 | Ansible | Configuration management and automation |
-| Java 8 | Hadoop runtime environment |
-| Linux | Operating system |
+| OpenJDK 8 | Hadoop runtime; installed by the Ansible `java` role |
+| Lubuntu | Guest operating system provided by the `lubuntu-base` box |
 
-## Deployment Workflow
+## Deployment workflow
 
-The cluster deployment is fully automated using Vagrant and Ansible.
+The Vagrantfile creates the three VMs, but does **not** run Ansible provisioning itself. The Ansible playbook is in the `ansible/` directory and must be run separately.
 
-### 1. Infrastructure Provisioning — Vagrant
-
-Vagrant provisions three virtual machines using VirtualBox.
-
-Each machine is configured with:
-- A unique hostname.
-- A static private IP address.
-- 2 GB of RAM.
-- 2 CPU cores.
-
-### 2. Configuration Management — Ansible
-
-A centralized playbook (`playbook.yml`) orchestrates the deployment across all machines defined in `inventory.ini`.
-
-Before executing the deployment, Ansible:
-- Waits for SSH connectivity.
-- Collects system information using Ansible Facts.
-- Executes the required installation and configuration roles.
-
-### 3. Automated Deployment Roles
-
-The deployment is organized into five reusable Ansible roles:
+The playbook waits for SSH connectivity, gathers facts, then runs these roles on the hosts in the `hadoop` inventory group:
 
 | Role | Responsibilities |
 |---|---|
-| **java** | Installs Java 8, required by Hadoop. |
-| **ssh** | Configures passwordless SSH communication between cluster nodes. |
-| **hadoop** | Downloads, extracts, distributes and configures Hadoop 3.3.6. |
-| **hdfs** | Initializes HDFS during the first deployment and starts the NameNode and DataNodes. |
-| **yarn** | Starts the ResourceManager and NodeManagers. |
+| `java` | Installs OpenJDK 8. |
+| `ssh` | Creates a key on the NameNode and authorizes it for the `oumayma` account on the cluster nodes, allowing passwordless SSH from the NameNode. |
+| `hadoop` | Downloads and extracts Hadoop 3.3.6 on each inventory host, then configures Hadoop and the cluster hostnames. |
+| `hdfs` | Formats the NameNode on first deployment and starts HDFS from the NameNode. |
+| `yarn` | Starts the ResourceManager on the NameNode and NodeManagers on the DataNodes. |
 
-### 4. HDFS — Distributed Storage
-
-HDFS provides distributed and fault-tolerant storage across the cluster.
-
-- **NameNode:** Manages filesystem metadata and namespace.
-- **DataNodes:** Store and manage distributed data blocks.
-
-### 5. YARN — Resource Management
-
-YARN manages cluster resources and coordinates distributed application execution.
-
-- **ResourceManager:** Coordinates resource allocation across the cluster.
-- **NodeManagers:** Manage containers and resources on worker nodes.
-
-### 6. MapReduce — Distributed Processing
-
-MapReduce enables parallel processing of large datasets across the cluster.
-
-It relies on YARN for resource allocation and application execution.
-
-## Installation & Deployment
+## Installation and deployment
 
 ### Prerequisites
 
-Make sure the following tools are installed:
+Install the following on the host machine:
 
 - VirtualBox
 - Vagrant
 - Ansible
-- SSH client
+- An SSH client
 
-### Step 1 — Clone the Repository
+The host must also have the network range used by the Vagrant private addresses available. The repository includes `lubuntu-base.box`; Vagrant must know the box under the name `lubuntu-base`.
 
-```bash
-git clone https://github.com/USERNAME/hadoop-distributed-cluster.git
-```
+### 1. Clone the repository
 
 ```bash
-cd hadoop-distributed-cluster
+git clone https://github.com/OumaymaKhlif/Hadoop-Distributed-Cluster.git
+cd Hadoop-Distributed-Cluster
 ```
 
-### Step 2 — Provision Virtual Machines
+### 2. Register the included Vagrant box (if it is not already registered)
+
+```bash
+vagrant box add lubuntu-base ./lubuntu-base.box
+```
+
+If Vagrant reports that the box is already registered, you can skip this step.
+
+### 3. Check and update the Ansible inventory
+
+Before running Ansible, open `ansible/inventory.ini`. Its SSH private-key paths are currently set to `/home/user/.ssh/hadoop/namenode_key`, `/home/user/.ssh/hadoop/datanode1_key`, and `/home/user/.ssh/hadoop/datanode2_key`. Replace these with the correct, existing private-key paths for your environment and ensure the keys provide SSH access to the Vagrant guests. The inventory connects as `vagrant`; the playbook's tasks that manage Hadoop services use the guest account `oumayma`.
+
+### 4. Provision the virtual machines
+
+From the repository root:
 
 ```bash
 vagrant up
-```
-
-This command creates and starts the three virtual machines.
-
-### Step 3 — Verify Infrastructure
-
-```bash
 vagrant status
 ```
 
-### Step 4 — Execute the Ansible Playbook
+The Vagrantfile defines `namenode`, `datanode1`, and `datanode2` with the IP addresses listed above.
+
+### 5. Run the Ansible playbook
+
+Run Ansible from the `ansible/` directory so that its `ansible.cfg` and relative inventory settings are applied:
 
 ```bash
+cd ansible
 ansible-playbook -i inventory.ini playbook.yml
 ```
 
-This command automatically executes all five roles across the Hadoop cluster.
+## Cluster verification
 
-## Cluster Verification
-
-After deployment, verify that all Hadoop services are running.
-
-### 1. Check Java Processes
-
-Execute on each machine:
+After the playbook completes, connect to the relevant VM, switch to the `oumayma` account, and load its shell environment before using Hadoop commands. For example:
 
 ```bash
-jps
+vagrant ssh namenode
+sudo -iu oumayma
+source ~/.bashrc
 ```
 
-Expected processes:
+### Check Java processes
 
-**NameNode:**
-- NameNode
-- ResourceManager
+Run `jps` on each VM. Expected Hadoop processes include:
 
-**DataNode 1 and DataNode 2:**
-- DataNode
-- NodeManager
+- **NameNode:** `NameNode` and `ResourceManager`
+- **DataNodes:** `DataNode` and `NodeManager`
 
-### 2. Verify HDFS
+### Verify HDFS
+
+On the NameNode:
 
 ```bash
 hdfs dfsadmin -report
 ```
 
-This command displays the DataNodes status, storage capacity, and HDFS cluster information.
+This reports DataNode status and HDFS capacity information.
 
-### 3. Verify YARN
+### Verify YARN
+
+On the NameNode:
 
 ```bash
 yarn node -list
 ```
 
-This command displays the registered NodeManagers.
+This lists the registered NodeManagers.
 
-## Hadoop Web Interfaces
-
-The Hadoop web interfaces provide monitoring and cluster administration.
+## Hadoop web interfaces
 
 | Component | URL |
 |---|---|
 | NameNode Web UI | http://192.168.56.120:9870 |
 | ResourceManager Web UI | http://192.168.56.120:8088 |
 
-## Key Learning Outcomes
+## Key learning outcomes
 
-- Designing and provisioning multi-node infrastructure using Vagrant.
-- Applying Infrastructure as Code (IaC) principles.
-- Automating configuration management with Ansible roles.
-- Configuring passwordless SSH communication.
-- Deploying and managing a distributed Hadoop cluster.
-- Understanding HDFS architecture and distributed storage.
-- Managing cluster resources using YARN.
-- Understanding MapReduce execution and distributed processing.
-- Automating infrastructure deployment and service initialization.
+- Designing and provisioning multi-node infrastructure with Vagrant.
+- Applying Infrastructure as Code principles.
+- Automating configuration with Ansible roles.
+- Configuring passwordless SSH from the NameNode to cluster nodes.
+- Deploying and managing HDFS and YARN services.
+- Configuring MapReduce to use YARN.
 
 ## Author
 
 **Oumayma Khlif**
 
 Data Engineering Student
-
